@@ -6,6 +6,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   quality:
     name: Format, Lint, Typecheck, Test, Browser Test, Build
@@ -14,6 +17,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Verify exact head
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          actual="$(git rev-parse HEAD)"
+          if [ "$actual" != "$EXPECTED_HEAD" ]; then
+            echo "::error::Checked out $actual but expected $EXPECTED_HEAD"
+            exit 1
+          fi
+          {
+            echo "### Exact head"
+            echo "- SHA: $actual"
+            echo "- Run ID: $GITHUB_RUN_ID"
+            echo "- Attempt: $GITHUB_RUN_ATTEMPT"
+            echo "- Platform: $RUNNER_OS"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -81,6 +105,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Verify exact head
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          actual="$(git rev-parse HEAD)"
+          if [ "$actual" != "$EXPECTED_HEAD" ]; then
+            echo "::error::Checked out $actual but expected $EXPECTED_HEAD"
+            exit 1
+          fi
+          {
+            echo "### Exact head"
+            echo "- SHA: $actual"
+            echo "- Run ID: $GITHUB_RUN_ID"
+            echo "- Attempt: $GITHUB_RUN_ATTEMPT"
+            echo "- Platform: $RUNNER_OS"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
